@@ -1,0 +1,38 @@
+on run
+	tell application "Finder"
+		tell disk "Check"
+			open
+
+			set theXOrigin to 200
+			set theYOrigin to 120
+			set theWidth to 540
+			set theHeight to 280
+
+			set theBottomRightX to (theXOrigin + theWidth)
+			set theBottomRightY to (theYOrigin + theHeight)
+
+			tell container window
+				set current view to icon view
+				set toolbar visible to false
+				set statusbar visible to false
+				set the bounds to {theXOrigin, theYOrigin, theBottomRightX, theBottomRightY}
+			end tell
+
+			set opts to the icon view options of container window
+			tell opts
+				set icon size to 116
+				set text size to 16
+				set arrangement to not arranged
+			end tell
+
+			-- Positioning
+			set position of item "Check.app" to {200, 108}
+			
+			-- Hiding
+			set the extension hidden of item "Check.app" to true
+
+			-- Result
+			"done"
+		end tell
+	end tell
+end run
