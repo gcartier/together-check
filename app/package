@@ -1,0 +1,52 @@
+#! /bin/sh
+
+CHECK=~/Devel/together/check
+NOTARY=$CHECK/notary
+PACKAGE=$CHECK/package
+MOUNT="/Volumes/Check"
+
+# Bail out
+set -e
+
+cd $PACKAGE
+
+# Setup
+if [ -d "$MOUNT" ]; then
+	hdiutil detach -quiet "$MOUNT"
+fi
+
+if [ -f "CheckTemplate.dmg" ]; then
+	rm "CheckTemplate.dmg"
+fi
+
+if [ -f "Check.dmg" ]; then
+	rm "Check.dmg"
+fi
+
+# Create and attach template
+hdiutil create -quiet -volname Check -fs HFS+ -size 200m -attach CheckTemplate.dmg
+
+# Copy files
+
+# If I get some weird unable to copy extended attributes error, the
+# only solution at the moment is to copy the directory using the Finder
+cp -R $NOTARY/Check.app $MOUNT/Check.app
+
+# Prettify
+/usr/bin/osascript Prettify
+
+# Detach and compress
+hdiutil detach -quiet $MOUNT
+hdiutil convert CheckTemplate.dmg -quiet -format UDZO -o Check.dmg
+rm CheckTemplate.dmg
+
+# Test
+# Mount dmg and check that it worked
+# Unmount it
+
+# Push
+# Copy Check.dmg to website/limited
+# commit and push
+# go to montreal
+# cd /var/www/together
+# sudo git pull

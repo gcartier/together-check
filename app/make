@@ -1,0 +1,38 @@
+#! /bin/sh
+
+CHECK=~/Devel/together/check
+APP=$CHECK/app
+GSTREAMER=$APP/gstreamer
+INSTALL=$CHECK/install
+
+# Bail out
+set -e
+
+cd $APP
+
+rm -rf $INSTALL/Check.app
+
+mkdir $INSTALL/Check.app
+mkdir $INSTALL/Check.app/Contents
+mkdir $INSTALL/Check.app/Contents/Libraries
+mkdir $INSTALL/Check.app/Contents/Libraries/gstreamer
+mkdir $INSTALL/Check.app/Contents/MacOS
+mkdir $INSTALL/Check.app/Contents/Resources
+
+# Compile
+gcc check.m -o Check -I$GSTREAMER/include/gstreamer-1.0 -I$GSTREAMER/include/glib-2.0 -I$GSTREAMER/lib/glib-2.0/include -L$GSTREAMER/lib -lgstreamer-1.0.0 -lgobject-2.0.0 -lglib-2.0.0 -framework Cocoa -framework AVFoundation
+
+# Executable
+mv Check $INSTALL/Check.app/Contents/MacOS
+install_name_tool -add_rpath @executable_path/../Libraries $INSTALL/Check.app/Contents/MacOS/Check
+install_name_tool -add_rpath @executable_path/../Libraries/gstreamer $INSTALL/Check.app/Contents/MacOS/Check
+
+# Info
+cp Info.plist $INSTALL/Check.app/Contents
+
+# Icon
+cp check.icns $INSTALL/Check.app/Contents/Resources
+
+# GStreamer
+cp -R $GSTREAMER/lib $INSTALL/Check.app/Contents/Libraries/gstreamer
+rm -rf $INSTALL/Check.app/Contents/Libraries/gstreamer/lib/glib-2.0

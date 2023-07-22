@@ -1,0 +1,35 @@
+#! /bin/sh
+
+CHECK=~/Devel/together/check
+INSTALL=$CHECK/install
+NOTARY=$CHECK/notary
+
+# Bail out
+set -e
+
+# Setup
+echo Copying...
+cd $NOTARY
+rm -rf Check.app
+cp -R $INSTALL/Check.app Check.app
+
+# Sign
+/usr/bin/xattr -r -c -s Check.app
+/usr/bin/codesign --force --options runtime --entitlements Entitlements.plist --timestamp --verbose=4 -s "Developer ID Application: Guillaume Cartier (R74FF3EJWG)" --digest-algorithm=sha1,sha256 Check.app/Contents/MacOS/Check
+for filename in Check.app/Contents/Libraries/gstreamer/lib/*.dylib; do
+    /usr/bin/codesign --force --options runtime --entitlements Entitlements.plist --timestamp --verbose=4 -s "Developer ID Application: Guillaume Cartier (R74FF3EJWG)" --digest-algorithm=sha1,sha256 $filename
+done
+for filename in Check.app/Contents/Libraries/gstreamer/lib/gstreamer-1.0/*.dylib; do
+    /usr/bin/codesign --force --options runtime --entitlements Entitlements.plist --timestamp --verbose=4 -s "Developer ID Application: Guillaume Cartier (R74FF3EJWG)" --digest-algorithm=sha1,sha256 $filename
+done
+/usr/bin/codesign --force --options runtime --entitlements Entitlements.plist --timestamp --verbose=4 -s "Developer ID Application: Guillaume Cartier (R74FF3EJWG)" --digest-algorithm=sha1,sha256 Check.app
+
+# Notarize
+/usr/bin/ditto -c -k --keepParent Check.app Check.zip
+/usr/bin/xcrun altool --notarize-app -f Check.zip --primary-bundle-id com.check.Check -u gucartier@gmail.com -p @keychain:Together\ Test --output-format xml
+# /usr/bin/xcrun altool --notarization-info <key-returned-from-previous-command> -u gucartier@gmail.com -p @keychain:Together\ Test
+# /usr/bin/xcrun stapler staple -v Check.app
+# rm Check.zip
+
+# Notes
+# - if the codesigning fails, there will be a LogFileURL that can be pasted into a browser to have a full log
